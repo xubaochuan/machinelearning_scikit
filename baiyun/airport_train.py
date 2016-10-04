@@ -2,27 +2,27 @@ import os
 import csv
 import numpy as np
 from sklearn import preprocessing
-import classifier
 import pandas as pd
-
-prediction_list = [[3,15,0,67,7924],
-		[3,15,1,65,7691],
-		[3,15,2,61,7514],
-		[3,15,3,63,7518],
-		[3,15,4,62,7442],
-		[3,15,5,63,7535],
-		[3,16,0,66,5615],
-		[3,16,1,62,5399],
-		[3,16,2,64,5541],
-		[3,16,3,67,5613],
-		[3,16,4,64,5457],
-		[3,16,5,68,5596],
-		[3,17,0,66,3562],
-		[3,17,1,64,3339],
-		[3,17,2,63,3269],
-		[3,17,3,63,3212],
-		[3,17,4,60,3151],
-		[3,17,5,62,3207]]
+import classifier
+import evaluate
+prediction_list = [[3,12,0,72,9028],
+		[3,12,1,68,8249],
+		[3,12,2,70,8463],
+		[3,12,3,67,8435],
+		[3,12,4,66,8126],
+		[3,12,5,67,8301],
+		[3,13,0,73,9607],
+		[3,13,1,67,8841],
+		[3,13,2,67,9017],
+		[3,13,3,68,9320],
+		[3,13,4,69,9015],
+		[3,13,5,67,8913],
+		[3,14,0,65,8827],
+		[3,14,1,64,8830],
+		[3,14,2,61,8282],
+		[3,14,3,64,9106],
+		[3,14,4,66,8862],
+		[3,14,5,65,8878]]
 
 def output_format(output, examples):
 	contents = []
@@ -38,7 +38,7 @@ def punish(mean, current):
 	if measure_rate > 0.8:
 		value = mean
 	elif measure_rate > 0.5:
-		value = current + (mean - current)
+		value = current + (mean - current)*0.8
 	else:
 		value = mean
 	return value
@@ -59,8 +59,8 @@ def normalize(train, prediction):
 	return train,prediction
 
 if __name__=='__main__':
-	trainset_dir = './prediction/trainset/'
-	result_path = './prediction/result.csv'
+	trainset_dir = './train/trainset/'
+	result_path = './train/result.csv'
 	target_file = open(result_path, "wb")
 	open_file_object = csv.writer(target_file)
 	open_file_object.writerow(['passengerCount', 'WIFIAPTag', 'slice10min'])
@@ -76,6 +76,8 @@ if __name__=='__main__':
 		examples = np.array(examples_list, dtype=np.float32)
 		prediction_nparray = np.array(prediction_list, dtype=np.float32)
 		x, prediction = normalize(examples[:,1:-1], prediction_nparray[:,1:])
+#		x = examples[:,1:-1]
+#		prediction = prediction_nparray[:,1:]
 		y = examples[:,-1]
 		output = classifier.svr(x, y, prediction)
 		result = output_format(output, examples)
@@ -83,3 +85,4 @@ if __name__=='__main__':
 			open_file_object.writerow([round(i[0], 2), ap, i[1]])
 	target_file.close()
 	print "success"
+	evaluate.score('./train/result.csv', './train/evaluation.csv')
